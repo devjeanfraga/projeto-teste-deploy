@@ -1,4 +1,4 @@
-name: Deploy Next.js to VPS
+name: Deploy Archdecor to VPS
 
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
       # Constrói a imagem Docker
       - name: Build Docker image
         run: |
-          docker build -t nextjs-app .
+          docker build -t archdecor-app .
 
       # Loga no Docker Hub (você deve configurar os segredos DOCKER_USERNAME e DOCKER_PASSWORD no GitHub)
       - name: Log in to Docker Hub
@@ -30,7 +30,7 @@ jobs:
       # Tag e envia a imagem para o Docker Hub
       - name: Push Docker image
         run: |
-          docker tag nextjs-app:latest "${{ secrets.DOCKER_USERNAME }}/nextjs-app:latest"
+          docker tag archdecor-app:latest "${{ secrets.DOCKER_USERNAME }}/archdecor-app:latest"
           docker push "${{ secrets.DOCKER_USERNAME }}/nextjs-app:latest"
 
   deploy:
@@ -45,7 +45,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           port: 22  # Altere se estiver usando uma porta de SSH personalizada
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key: ${{ secrets.VPS_PASSWORD }}
           script: |
             cd /root/web  # Caminho no servidor VPS onde você deseja copiar a aplicação
             docker-compose down || true
