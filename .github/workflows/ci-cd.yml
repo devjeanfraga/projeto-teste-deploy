@@ -1,0 +1,53 @@
+name: Deploy Next.js to VPS
+
+on:
+  push:
+    branches:
+      - main  # Executa o CI/CD ao fazer push para o branch `main`
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Faz checkout do código
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Configura Docker
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      # Constrói a imagem Docker
+      - name: Build Docker image
+        run: |
+          docker build -t nextjs-app .
+
+      # Loga no Docker Hub (você deve configurar os segredos DOCKER_USERNAME e DOCKER_PASSWORD no GitHub)
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      # Tag e envia a imagem para o Docker Hub
+      - name: Push Docker image
+        run: |
+          docker tag nextjs-app:latest "${{ secrets.DOCKER_USERNAME }}/nextjs-app:latest"
+          docker push "${{ secrets.DOCKER_USERNAME }}/nextjs-app:latest"
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      # Configura SSH para acessar a VPS (precisa dos segredos SSH_PRIVATE_KEY, VPS_HOST e VPS_USERNAME)
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v0.1.1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          port: 22  # Altere se estiver usando uma porta de SSH personalizada
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /root/web  # Caminho no servidor VPS onde você deseja copiar a aplicação
+            docker-compose down || true
+            docker-compose pull
+            docker-compose up -d
