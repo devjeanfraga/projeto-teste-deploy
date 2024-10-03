@@ -31,7 +31,7 @@ jobs:
       - name: Push Docker image
         run: |
           docker tag archdecor-app:latest "${{ secrets.DOCKER_USERNAME }}/archdecor-app:latest"
-          docker push "${{ secrets.DOCKER_USERNAME }}/nextjs-app:latest"
+          docker push "${{ secrets.DOCKER_USERNAME }}/archdecor-app:latest"
 
   deploy:
     runs-on: ubuntu-latest
